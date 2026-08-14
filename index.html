@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>3D Galerie exponátů</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%BF%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Obrazovka galerie -->
+      <section id="gallery-screen" class="screen">
+        <header class="gallery-header">
+          <h1>3D Galerie exponátů</h1>
+          <p class="subtitle">Vyberte exponát dotykem a prohlédněte si jej ze všech stran</p>
+        </header>
+        <div id="gallery-grid" class="gallery-grid"></div>
+      </section>
+
+      <!-- Obrazovka prohlížeče modelu -->
+      <section id="viewer-screen" class="screen hidden">
+        <div id="viewer-canvas-wrap">
+          <canvas id="viewer-canvas"></canvas>
+          <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <div id="loading-text">Načítání modelu…</div>
+            <div class="progress-track"><div id="loading-progress" class="progress-fill"></div></div>
+          </div>
+        </div>
+
+        <button id="btn-back" class="btn btn-round btn-back" aria-label="Zpět na přehled">←</button>
+        <button id="btn-info" class="btn btn-round btn-info" aria-label="Informace o exponátu">i</button>
+        <button id="btn-reset" class="btn btn-round btn-reset" aria-label="Resetovat pohled">⟳</button>
+
+        <div id="info-panel" class="info-panel hidden">
+          <h2 id="info-name"></h2>
+          <dl id="info-meta"></dl>
+          <p id="info-description"></p>
+        </div>
+
+        <div id="hint" class="hint">Prstem otočíte model, dvěma prsty přiblížíte</div>
+      </section>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
