@@ -75,6 +75,8 @@ pak můžete odstranit.
 
 Toto se dělá **jednou** (a pak znovu jen když přidáte/změníte exponáty),
 na jakémkoli počítači s Node.js a internetem – nemusí to být ten muzejní kiosek.
+Pokud nemáte Node.js ani netušíte, co to je: pošlete mi upravené soubory
+(nebo popis změny) a hotovou složku `dist/` vám připravím a pošlu ke stažení.
 
 ```bash
 npm install     # jen poprvé – stáhne potřebné knihovny
@@ -82,55 +84,58 @@ npm run build   # vytvoří složku dist/ se vším potřebným
 ```
 
 Složka `dist/` po sestavení obsahuje kompletní, samostatně funkční aplikaci
-(HTML, JS, CSS i všechny `.glb` modely) – nic dalšího už není potřeba a
-**nepotřebuje internet**. Tuto složku zkopírujte na USB flash disk.
+(HTML, JS, CSS, všechny `.glb` modely a spouštěcí skripty) – nic dalšího
+už není potřeba a **nepotřebuje internet**. Tuto složku zkopírujte na USB flash disk.
 
 ---
 
 ## 3. Spuštění na muzejním PC bez internetu
 
-Na kiosek PC přeneste složku `dist/` (např. z USB disku). Prohlížeč (Chrome/Edge)
-neumí spolehlivě načítat 3D modely přímo z `file://`, proto je potřeba je
-"servírovat" přes malý lokální webový server – ten ale běží jen na tom samém
-počítači a internet k tomu není potřeba.
+**Důležité:** dvojklik přímo na `index.html` nebude fungovat – prohlížeč
+z bezpečnostních důvodů zablokuje načítání 3D modelů, pokud stránku otevřete
+takhle napřímo (soubory musí být "servírované" přes lokální webový server,
+i když jde jen o localhost bez internetu).
 
-### Nejjednodušší varianta – Python (pokud je na PC nainstalovaný)
+Proto je ve složce `dist/` přichystaný soubor **`spustit-galerii.bat`**,
+který vše zařídí sám – nepotřebuje Python, Node.js ani žádnou instalaci,
+jen samotný Windows.
 
-V `dist/` složce spusťte:
+### Postup (Windows)
 
-```bash
-python -m http.server 8080
-```
+1. Zkopírujte celou složku `dist/` na kiosek PC, např. do `C:\galerie\`.
+2. Ve složce dvakrát klikněte na **`spustit-galerii.bat`**.
+   - Otevře se malé (zmenšené) černé okno – to je lokální server, **nezavírejte
+     ho**, dokud má být galerie spuštěná. Zavřením tohoto okna se appka vypne.
+   - Zároveň se automaticky otevře prohlížeč (Chrome nebo Edge, cokoliv je
+     na PC nainstalované) na celou obrazovku s galerií.
+3. Pokud se objeví žluté/modré okno Windows s dotazem na "síťovou bránu
+   firewall" u PowerShellu, klikněte na **Povolit přístup** – jde jen o
+   komunikaci na `localhost` (v rámci téhož PC), nikam ven na internet.
 
-a v prohlížeči otevřete `http://localhost:8080`.
+### Automatické spuštění po zapnutí PC
 
-### Alternativa – Node.js (pokud jste zkopírovali celý projekt i s `node_modules`)
+1. Stiskněte `Win + R`, napište `shell:startup` a potvrďte – otevře se
+   složka **Po spuštění**.
+2. Vytvořte v ní zástupce (pravé tlačítko myši → Nový → Zástupce) směřující
+   na `C:\galerie\spustit-galerii.bat`.
+3. Po dalším zapnutí PC se galerie spustí sama.
 
-```bash
-npm run preview
-```
+### Doporučené nastavení Windows pro kiosek
 
-otevře server na `http://localhost:5000`.
+- Vypněte spořič obrazovky a uspávání displeje (Nastavení → Systém → Napájení).
+- Vypněte Windows dotyková gesta pro přepínání aplikací/tažení od okraje
+  obrazovky (Nastavení → Dotyk/Bluetooth a zařízení → Dotyk), ať se návštěvník
+  omylem nedostane z appky pryč.
+- Volitelně nastavte automatické přihlášení uživatele (appka žádné
+  internetové připojení nepotřebuje, i login účtu může být lokální).
 
-### Nastavení kiosku (Windows, doporučeno)
+Ukončení kiosk módu (pro personál, ne pro návštěvníky): `Alt+F4`.
 
-1. Vytvořte zástupce/`.bat` soubor, který nejdřív spustí lokální server
-   (viz výše) a poté prohlížeč v kiosk módu:
-   ```bat
-   start "" python -m http.server 8080 --directory "C:\galerie\dist"
-   timeout /t 2
-   start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8080
-   ```
-2. Tento `.bat` soubor přidejte do složky **Po spuštění** (Startup), aby se
-   kiosek sám spustil po zapnutí PC.
-3. V nastavení Windows doporučujeme:
-   - Vypnout spořič obrazovky a uspávání displeje.
-   - Vypnout Windows dotyková gesta pro přepínání aplikací/hran obrazovky
-     (Nastavení → Dotyk → Gesta), ať se návštěvník omylem nedostane pryč z appky.
-   - Volitelně nastavit automatické přihlášení uživatele bez internetového
-     připojení (appka žádné síťové připojení nepotřebuje).
-4. Klávesová zkratka pro ukončení kiosk módu v Chromu je `Alt+F4`
-   (pro personál, ne pro návštěvníky).
+### Jiný operační systém (macOS/Linux)
+
+`spustit-galerii.bat` je jen pro Windows. Na macOS/Linuxu spusťte ve složce
+`dist/` v terminálu `python3 -m http.server 8080` (Python bývá součástí
+systému) a otevřete `http://localhost:8080` v prohlížeči na celou obrazovku.
 
 ---
 
@@ -150,11 +155,13 @@ notebooku před nasazením na kiosek.
 ## Struktura projektu
 
 ```
-public/models/            – .glb soubory exponátů + thumbnails/
-src/exhibits.json         – seznam exponátů (název, popis, cesta k modelu…)
-src/main.js               – logika galerie a 3D prohlížeče (Three.js)
-src/style.css             – vzhled, přizpůsobeno velké dotykové obrazovce
-index.html                – vstupní stránka
+public/models/             – .glb soubory exponátů + thumbnails/
+public/spustit-galerii.bat – spouštěč pro kiosek PC (kopíruje se do dist/)
+public/server.ps1          – lokální server bez závislostí (kopíruje se do dist/)
+src/exhibits.json          – seznam exponátů (název, popis, cesta k modelu…)
+src/main.js                – logika galerie a 3D prohlížeče (Three.js)
+src/style.css              – vzhled, přizpůsobeno velké dotykové obrazovce
+index.html                 – vstupní stránka
 ```
 
 ## Přizpůsobení
