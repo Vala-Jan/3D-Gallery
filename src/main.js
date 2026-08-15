@@ -34,7 +34,29 @@ let hintTimer = null;
 let defaultCameraPos = new THREE.Vector3();
 let defaultTarget = new THREE.Vector3();
 
-function buildGallery() {
+// V Electron (.exe) verzi appka běží přes lokální server, který umí
+// prozradit, kde přesně na disku hledá exponaty/exhibits.json a co v té
+// složce skutečně našel – užitečné pro ladění, proč se nic nezobrazuje.
+// Webová (ne-Electron) verze nemá /__status endpoint, fetch tam prostě selže a nic se nepřidá.
+async function appendDiagnostics(container) {
+  try {
+    const res = await fetch("__status");
+    if (!res.ok) return;
+    const status = await res.json();
+    const debug = document.createElement("pre");
+    debug.className = "empty-message";
+    debug.style.textAlign = "left";
+    debug.style.fontSize = "12px";
+    debug.style.whiteSpace = "pre-wrap";
+    debug.style.opacity = "0.7";
+    debug.textContent = "Diagnostika:\n" + JSON.stringify(status, null, 2);
+    container.appendChild(debug);
+  } catch {
+    // Webová verze bez /__status – v pořádku, nic se nezobrazí.
+  }
+}
+
+async function buildGallery() {
   galleryGrid.innerHTML = "";
 
   if (!exhibits.length) {
@@ -43,6 +65,7 @@ function buildGallery() {
     empty.textContent =
       "Zatím zde nejsou žádné exponáty. Přidejte je podle návodu v README.md.";
     galleryGrid.appendChild(empty);
+    await appendDiagnostics(galleryGrid);
     return;
   }
 
@@ -273,8 +296,9 @@ async function loadExhibits() {
     console.error("Nepodařilo se načíst exhibits.json:", err);
     galleryGrid.innerHTML =
       '<div class="empty-message">Nepodařilo se načíst seznam exponátů (exhibits.json). ' +
-      "Zkontrolujte, že soubor existuje ve složce dist a že galerii spouštíte přes " +
-      "spustit-galerii.bat, ne dvojklikem na index.html.</div>";
+      "Zkontrolujte, že soubor existuje a je to platný JSON, a že galerii spouštíte přes " +
+      "spustit-galerii.bat / 3D Galerie.exe, ne dvojklikem na index.html.</div>";
+    await appendDiagnostics(galleryGrid);
     return;
   }
   buildGallery();
