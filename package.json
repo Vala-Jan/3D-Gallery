@@ -1,7 +1,7 @@
 {
   "name": "festival-v-dy-3d-galerie",
   "version": "1.0.0",
-  "description": "Interaktivní galerie 3D modelů exponátů pro dotykovou obrazovku bez připojení k internetu",
+  "description": "Desktopová appka (Electron) pro dotykovou obrazovku v muzeu - interaktivní galerie 3D modelů, offline",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",
@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview --host --port 5000",
     "electron": "npm run build && electron .",
-    "package:win": "npm run build && electron-packager . \"3D Galerie\" --platform=win32 --arch=x64 --out=release --overwrite --no-asar --ignore=\"^/(src|public|release|exponaty-dev|node_modules|\\.git)($|/)\" --ignore=\"^/(README\\.md|vite\\.config\\.js|\\.gitignore|package-lock\\.json)$\""
+    "package:win": "npm run build && electron-packager . \"3D Galerie\" --platform=win32 --arch=x64 --out=release --overwrite --no-asar --ignore=\"^/(src|public|release|modely-dev|node_modules|\\.git)($|/)\" --ignore=\"^/(README\\.md|vite\\.config\\.js|\\.gitignore|package-lock\\.json)$\""
   },
   "dependencies": {
     "three": "^0.169.0"

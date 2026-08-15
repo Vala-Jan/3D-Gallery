@@ -157,56 +157,27 @@ body {
   left: clamp(16px, 2vw, 32px);
 }
 
-.btn-info {
-  top: clamp(16px, 2vh, 32px);
-  right: clamp(16px, 2vw, 32px);
-}
-
 .btn-reset {
   bottom: clamp(16px, 2vh, 32px);
   right: clamp(16px, 2vw, 32px);
 }
 
-.info-panel {
+.viewer-title {
   position: absolute;
   z-index: 9;
-  top: clamp(84px, 10vh, 120px);
-  right: clamp(16px, 2vw, 32px);
-  max-width: min(90vw, 420px);
-  background: rgba(20, 22, 28, 0.92);
-  border: 2px solid #2f3340;
-  border-radius: 16px;
-  padding: 20px 24px;
-  backdrop-filter: blur(8px);
-}
-
-.info-panel.hidden {
-  display: none;
-}
-
-.info-panel h2 {
-  font-size: clamp(18px, 2vw, 26px);
-  margin-bottom: 12px;
-}
-
-.info-panel dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 12px;
-  font-size: clamp(12px, 1.2vw, 15px);
-  color: #c3c7d1;
-  margin-bottom: 12px;
-}
-
-.info-panel dt {
+  top: clamp(16px, 2vh, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(80vw, 640px);
+  text-align: center;
+  font-size: clamp(16px, 2vw, 26px);
   font-weight: 600;
-  color: #8b90a0;
-}
-
-.info-panel p {
-  font-size: clamp(13px, 1.3vw, 16px);
-  line-height: 1.5;
-  color: #e2e4ea;
+  color: #f2f2f2;
+  background: rgba(20, 22, 28, 0.75);
+  padding: 8px 24px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
 }
 
 .hint {

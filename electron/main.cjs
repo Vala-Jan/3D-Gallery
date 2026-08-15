@@ -5,29 +5,39 @@ const path = require("node:path");
 
 // V zabalené appce (.exe) leží spustitelný soubor a vedle něj i tato složka
 // resources/app – tam je vestavěný obsah appky (dist/, vytvořené přes `npm run build`).
-// Editovatelný obsah (seznam exponátů a modely) je záměrně MIMO resources,
-// v jednoduše dostupné složce "exponaty" vedle .exe, aby personál nemusel
-// sahat do vnitřních souborů appky.
+// Exponáty (.glb soubory) se berou ze složky "modely" vedle .exe – appka ji
+// při každém zobrazení galerie znovu prohledá, žádný seznam/JSON se nikde
+// neudržuje. Přidání exponátu = zkopírovat .glb soubor do téhle složky.
 const isPackaged = app.isPackaged;
 const appRoot = isPackaged ? path.join(process.resourcesPath, "app") : path.join(__dirname, "..");
 const distDir = path.join(appRoot, "dist");
-const exponatyDir = isPackaged
-  ? path.join(path.dirname(process.execPath), "exponaty")
-  : path.join(__dirname, "..", "exponaty-dev");
+const modelyDir = isPackaged
+  ? path.join(path.dirname(process.execPath), "modely")
+  : path.join(__dirname, "..", "modely-dev");
 
-fs.mkdirSync(path.join(exponatyDir, "models", "thumbnails"), { recursive: true });
+const modelyDirExisted = fs.existsSync(modelyDir);
+fs.mkdirSync(modelyDir, { recursive: true });
 
-const defaultExhibitsPath = path.join(exponatyDir, "exhibits.json");
-if (!fs.existsSync(defaultExhibitsPath)) {
-  fs.writeFileSync(defaultExhibitsPath, "[]\n", "utf-8");
+if (!modelyDirExisted) {
+  // První spuštění – nasejeme pár ukázkových modelů, ať je hned vidět, že appka funguje.
+  const demoSrcDir = path.join(__dirname, "demo-models");
+  try {
+    for (const file of fs.readdirSync(demoSrcDir)) {
+      fs.copyFileSync(path.join(demoSrcDir, file), path.join(modelyDir, file));
+    }
+  } catch {
+    // Demo modely nejsou k dispozici (např. při vývoji) – nevadí, složka zůstane prázdná.
+  }
 }
+
+const MODEL_EXTENSIONS = new Set([".glb", ".gltf"]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript",
   ".mjs": "application/javascript",
   ".css": "text/css",
-  ".json": "application/json",
+  ".json": "application/json; charset=utf-8",
   ".glb": "model/gltf-binary",
   ".gltf": "model/gltf+json",
   ".bin": "application/octet-stream",
@@ -61,42 +71,38 @@ function serveFile(res, filePath) {
   });
 }
 
+// Prohledá složku "modely" a z názvů souborů (bez přípony) sestaví seznam
+// exponátů – žádné ruční popisky, žádný JSON k rozbití.
+function listExhibits() {
+  let entries = [];
+  try {
+    entries = fs
+      .readdirSync(modelyDir, { withFileTypes: true })
+      .filter((e) => e.isFile() && MODEL_EXTENSIONS.has(path.extname(e.name).toLowerCase()))
+      .map((e) => e.name)
+      .sort((a, b) => a.localeCompare(b, "cs"));
+  } catch {
+    entries = [];
+  }
+  return entries.map((filename) => ({
+    id: filename,
+    name: path.parse(filename).name,
+    model: "modely/" + encodeURIComponent(filename),
+  }));
+}
+
 function startServer() {
   const server = http.createServer((req, res) => {
     const urlPath = req.url.split("?")[0];
 
-    // Diagnostická informace pro appku (a pro ladění) – kam přesně appka
-    // sahá pro exhibits.json/modely, a jestli tam skutečně něco najde.
-    if (urlPath === "/__status") {
-      const exhibitsPath = path.join(exponatyDir, "exhibits.json");
-      let exhibitsInfo;
-      try {
-        const raw = fs.readFileSync(exhibitsPath, "utf-8");
-        try {
-          const parsed = JSON.parse(raw);
-          exhibitsInfo = { readable: true, validJson: true, count: Array.isArray(parsed) ? parsed.length : null };
-        } catch (parseErr) {
-          exhibitsInfo = { readable: true, validJson: false, parseError: parseErr.message, rawPreview: raw.slice(0, 200) };
-        }
-      } catch (readErr) {
-        exhibitsInfo = { readable: false, error: readErr.message };
-      }
-      let modelFiles = [];
-      try {
-        modelFiles = fs.readdirSync(path.join(exponatyDir, "models"));
-      } catch {}
-      const body = JSON.stringify({ exponatyDir, exhibitsPath, exhibitsInfo, modelFiles }, null, 2);
-      res.writeHead(200, { "Content-Type": "application/json" });
+    if (urlPath === "/api/exhibits") {
+      const body = JSON.stringify({ folder: modelyDir, exhibits: listExhibits() });
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
       return res.end(body);
     }
 
-    // Editovatelný obsah (exponáty) se servíruje ze složky vedle .exe,
-    // zbytek (appka samotná) z vnitřní dist/ složky.
-    if (urlPath === "/exhibits.json") {
-      return serveFile(res, path.join(exponatyDir, "exhibits.json"));
-    }
-    if (urlPath.startsWith("/models/")) {
-      const filePath = safeJoin(exponatyDir, urlPath);
+    if (urlPath.startsWith("/modely/")) {
+      const filePath = safeJoin(modelyDir, urlPath.slice("/modely".length));
       if (!filePath) {
         res.writeHead(403);
         return res.end("Forbidden");
@@ -115,11 +121,8 @@ function startServer() {
 
   return new Promise((resolve, reject) => {
     server.on("error", reject);
-    // Port 0 = necháme operační systém vybrat volný port. Appka dřív používala
-    // pevný port 8080, který se uměl srazit se starším samostatným serverem
-    // z webové verze (server.ps1) běžícím na pozadí – oba se pak "prali" o
-    // stejné místo a appka omylem načetla cizí (starý) obsah. Volný port
-    // vybraný systémem tuhle kolizi úplně vylučuje.
+    // Port 0 = necháme operační systém vybrat volný port, ať appka nikdy
+    // nekoliduje s ničím jiným, co by případně běželo na pevném portu.
     server.listen(0, "127.0.0.1", () => resolve(server));
   });
 }

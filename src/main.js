@@ -3,9 +3,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
-// exhibits.json se načítá za běhu (ne při sestavení), aby šlo exponáty
-// přidávat/upravovat přímo ve složce dist/ bez nutnosti dělat nový build.
+// Seznam exponátů appka nikde needuje – při každém načtení galerie se
+// zeptá lokálního serveru (electron/main.cjs), jaké .glb soubory právě
+// leží ve složce "modely" vedle .exe. Přidání exponátu je tak jen
+// zkopírování souboru, žádný JSON k úpravě.
 let exhibits = [];
+let modelyFolder = null;
 
 // Po kolika ms nečinnosti v prohlížeči se galerie sama vrátí na přehled
 // (aby byla připravená pro dalšího návštěvníka). Nastavte na 0 pro vypnutí.
@@ -18,14 +21,10 @@ const canvas = document.getElementById("viewer-canvas");
 const loadingOverlay = document.getElementById("loading-overlay");
 const loadingText = document.getElementById("loading-text");
 const loadingProgress = document.getElementById("loading-progress");
-const infoPanel = document.getElementById("info-panel");
-const infoName = document.getElementById("info-name");
-const infoMeta = document.getElementById("info-meta");
-const infoDescription = document.getElementById("info-description");
+const viewerTitle = document.getElementById("viewer-title");
 const hint = document.getElementById("hint");
 
 const btnBack = document.getElementById("btn-back");
-const btnInfo = document.getElementById("btn-info");
 const btnReset = document.getElementById("btn-reset");
 
 let renderer, scene, camera, controls, currentModel;
@@ -34,38 +33,24 @@ let hintTimer = null;
 let defaultCameraPos = new THREE.Vector3();
 let defaultTarget = new THREE.Vector3();
 
-// V Electron (.exe) verzi appka běží přes lokální server, který umí
-// prozradit, kde přesně na disku hledá exponaty/exhibits.json a co v té
-// složce skutečně našel – užitečné pro ladění, proč se nic nezobrazuje.
-// Webová (ne-Electron) verze nemá /__status endpoint, fetch tam prostě selže a nic se nepřidá.
-async function appendDiagnostics(container) {
-  try {
-    const res = await fetch("__status");
-    if (!res.ok) return;
-    const status = await res.json();
-    const debug = document.createElement("pre");
-    debug.className = "empty-message";
-    debug.style.textAlign = "left";
-    debug.style.fontSize = "12px";
-    debug.style.whiteSpace = "pre-wrap";
-    debug.style.opacity = "0.7";
-    debug.textContent = "Diagnostika:\n" + JSON.stringify(status, null, 2);
-    container.appendChild(debug);
-  } catch {
-    // Webová verze bez /__status – v pořádku, nic se nezobrazí.
-  }
-}
-
-async function buildGallery() {
+function buildGallery() {
   galleryGrid.innerHTML = "";
 
   if (!exhibits.length) {
     const empty = document.createElement("div");
     empty.className = "empty-message";
-    empty.textContent =
-      "Zatím zde nejsou žádné exponáty. Přidejte je podle návodu v README.md.";
+    empty.textContent = "Zatím zde nejsou žádné exponáty.";
     galleryGrid.appendChild(empty);
-    await appendDiagnostics(galleryGrid);
+
+    if (modelyFolder) {
+      const hintMsg = document.createElement("div");
+      hintMsg.className = "empty-message";
+      hintMsg.style.fontSize = "14px";
+      hintMsg.style.opacity = "0.7";
+      hintMsg.style.whiteSpace = "pre-wrap";
+      hintMsg.textContent = "Vložte soubory .glb do složky:\n" + modelyFolder;
+      galleryGrid.appendChild(hintMsg);
+    }
     return;
   }
 
@@ -75,23 +60,13 @@ async function buildGallery() {
 
     const thumb = document.createElement("div");
     thumb.className = "thumb";
-    if (exhibit.thumbnail) {
-      const img = document.createElement("img");
-      img.src = exhibit.thumbnail;
-      img.alt = exhibit.name;
-      thumb.appendChild(img);
-    } else {
-      thumb.textContent = "🗿";
-    }
+    thumb.textContent = "🗿";
 
     const body = document.createElement("div");
     body.className = "card-body";
     const title = document.createElement("h3");
     title.textContent = exhibit.name;
-    const period = document.createElement("p");
-    period.textContent = exhibit.period || "";
     body.appendChild(title);
-    body.appendChild(period);
 
     card.appendChild(thumb);
     card.appendChild(body);
@@ -185,24 +160,7 @@ function openExhibit(exhibit) {
   onResize();
   clearModel();
 
-  infoName.textContent = exhibit.name;
-  infoDescription.textContent = exhibit.description || "";
-  infoMeta.innerHTML = "";
-  const metaFields = [
-    ["Autor / původ", exhibit.author],
-    ["Období", exhibit.period],
-    ["Materiál", exhibit.material],
-  ];
-  for (const [label, value] of metaFields) {
-    if (!value) continue;
-    const dt = document.createElement("dt");
-    dt.textContent = label;
-    const dd = document.createElement("dd");
-    dd.textContent = value;
-    infoMeta.appendChild(dt);
-    infoMeta.appendChild(dd);
-  }
-  infoPanel.classList.add("hidden");
+  viewerTitle.textContent = exhibit.name;
 
   loadingOverlay.classList.remove("hidden");
   loadingProgress.style.width = "0%";
@@ -216,7 +174,7 @@ function openExhibit(exhibit) {
     exhibit.model,
     (gltf) => {
       currentModel = gltf.scene;
-      frameModel(currentModel, exhibit.cameraDistance);
+      frameModel(currentModel);
       scene.add(currentModel);
       loadingOverlay.classList.add("hidden");
       registerActivity();
@@ -229,13 +187,12 @@ function openExhibit(exhibit) {
     },
     (error) => {
       console.error("Chyba při načítání modelu:", error);
-      loadingText.textContent =
-        "Model se nepodařilo načíst. Zkontrolujte soubor v exhibits.json.";
+      loadingText.textContent = "Model se nepodařilo načíst.";
     }
   );
 }
 
-function frameModel(model, preferredDistance) {
+function frameModel(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
@@ -243,7 +200,7 @@ function frameModel(model, preferredDistance) {
   model.position.sub(center);
 
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  const distance = preferredDistance || maxDim * 2.2;
+  const distance = maxDim * 2.2;
 
   camera.position.set(distance * 0.6, distance * 0.45, distance * 0.8);
   camera.near = maxDim / 100;
@@ -278,10 +235,6 @@ function registerActivity() {
 }
 
 btnBack.addEventListener("click", closeViewer);
-btnInfo.addEventListener("click", () => {
-  infoPanel.classList.toggle("hidden");
-  registerActivity();
-});
 btnReset.addEventListener("click", resetView);
 
 loadExhibits();
@@ -289,17 +242,15 @@ loadExhibits();
 async function loadExhibits() {
   galleryGrid.innerHTML = '<div class="empty-message">Načítání seznamu exponátů…</div>';
   try {
-    const res = await fetch(`exhibits.json?v=${Date.now()}`);
+    const res = await fetch(`api/exhibits?v=${Date.now()}`);
     if (!res.ok) throw new Error("HTTP " + res.status);
-    exhibits = await res.json();
+    const data = await res.json();
+    exhibits = data.exhibits || [];
+    modelyFolder = data.folder || null;
   } catch (err) {
-    console.error("Nepodařilo se načíst exhibits.json:", err);
-    galleryGrid.innerHTML =
-      '<div class="empty-message">Nepodařilo se načíst seznam exponátů (exhibits.json). ' +
-      "Zkontrolujte, že soubor existuje a je to platný JSON, a že galerii spouštíte přes " +
-      "spustit-galerii.bat / 3D Galerie.exe, ne dvojklikem na index.html.</div>";
-    await appendDiagnostics(galleryGrid);
-    return;
+    console.error("Nepodařilo se načíst seznam exponátů:", err);
+    exhibits = [];
+    modelyFolder = null;
   }
   buildGallery();
 }
