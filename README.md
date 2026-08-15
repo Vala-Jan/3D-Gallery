@@ -149,7 +149,50 @@ systému) a otevřete `http://localhost:8080` v prohlížeči na celou obrazovku
 
 ---
 
-## 4. Vývoj / testování
+## 4. Volitelné: samostatná .exe aplikace (Electron)
+
+Appka jde sestavit i jako opravdová desktopová aplikace (přes
+[Electron](https://www.electronjs.org/)) – po spuštění `.exe` se rovnou
+otevře na celou obrazovku, bez viditelného okna prohlížeče nebo serveru,
+bez PowerShellu a bez SmartScreen varování kvůli `.bat`/`.ps1` skriptům.
+
+Toto je čistě volitelné – webová verze z kroků 1–3 funguje sama o sobě.
+Sestavení potřebuje (stejně jako krok 2) počítač s Node.js a internetem
+(nemusí to být kiosek PC):
+
+```bash
+npm install
+npm run package:win
+```
+
+Vytvoří se složka `release/3D Galerie-win32-x64/` (cca 300–350 MB – Electron
+v sobě nese celý prohlížečový engine, proto ta velikost). Tuto celou složku
+zkopírujte na USB disk a přeneste na kiosek PC – nic dalšího se instalovat
+nemusí.
+
+Ve složce vedle `3D Galerie.exe` vytvořte (pokud tam appka sama nevytvoří
+prázdnou) podsložku `exponaty/` se stejnou strukturou jako `dist/models/` +
+`exhibits.json` u webové verze:
+```
+exponaty/
+  exhibits.json
+  models/
+    *.glb
+```
+Pro rychlý start zkopírujte jako výchozí obsah `public/exhibits.json` a
+`public/models/*.glb` z tohoto repozitáře.
+
+Spuštění: dvojklik na `3D Galerie.exe` – appka se otevře v kiosk módu.
+Ukončení (pro personál): `Ctrl+Shift+Q`.
+
+Přidávání exponátů funguje stejně jako u webové verze (úprava
+`exponaty/exhibits.json` v Poznámkovém bloku + kopírování `.glb` do
+`exponaty/models/`), jen appku po úpravě restartujte (zavřít a znovu
+spustit `.exe`) – změny se načtou.
+
+---
+
+## 5. Vývoj / testování
 
 ```bash
 npm install
@@ -172,6 +215,7 @@ public/server.ps1          – lokální server bez závislostí (kopíruje se d
 src/main.js                – logika galerie a 3D prohlížeče (Three.js)
 src/style.css              – vzhled, přizpůsobeno velké dotykové obrazovce
 index.html                 – vstupní stránka
+electron/main.cjs          – volitelný Electron obal (viz krok 4, .exe verze)
 ```
 
 ## Přizpůsobení
