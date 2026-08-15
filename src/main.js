@@ -26,12 +26,43 @@ const hint = document.getElementById("hint");
 
 const btnBack = document.getElementById("btn-back");
 const btnReset = document.getElementById("btn-reset");
+const lightButtons = Array.from(document.querySelectorAll(".light-btn"));
 
 let renderer, scene, camera, controls, currentModel;
+let ambientLight, keyLight, fillLight, sideLight, backLight, spotLight;
 let idleTimer = null;
 let hintTimer = null;
 let defaultCameraPos = new THREE.Vector3();
 let defaultTarget = new THREE.Vector3();
+
+// Čtyři režimy osvětlení, mezi kterými návštěvník přepíná vlevo dole při
+// prohlížení modelu – každý zvýrazní jiné detaily exponátu.
+const LIGHT_PRESETS = {
+  // Standardní, vyvážené osvětlení pro běžné prohlížení.
+  studio: { env: 0.6, ambient: 0.6, key: 1.2, fill: 0.5, side: 0, back: 0, spot: 0 },
+  // Ostré boční (šikmé) světlo – odhalí reliéf, rytiny a texturu povrchu.
+  // Prostředí (IBL) je záměrně hodně ztlumené, ať boční světlo vynikne.
+  side: { env: 0.08, ambient: 0.1, key: 0.1, fill: 0.05, side: 3.2, back: 0, spot: 0 },
+  // Dramatický reflektor shora, tmavší okolí – muzejní "spotlight" efekt.
+  top: { env: 0.06, ambient: 0.08, key: 0.05, fill: 0.05, side: 0, back: 0, spot: 3.5 },
+  // Rovnoměrné světlo ze všech stran, minimum ostrých stínů – pro posouzení
+  // barvy a materiálu bez rušivých kontrastů.
+  flat: { env: 1.1, ambient: 1.1, key: 0.5, fill: 0.5, side: 0.5, back: 0.5, spot: 0 },
+};
+
+function applyLightPreset(mode) {
+  const preset = LIGHT_PRESETS[mode] || LIGHT_PRESETS.studio;
+  scene.environmentIntensity = preset.env;
+  ambientLight.intensity = preset.ambient;
+  keyLight.intensity = preset.key;
+  fillLight.intensity = preset.fill;
+  sideLight.intensity = preset.side;
+  backLight.intensity = preset.back;
+  spotLight.intensity = preset.spot;
+  for (const btn of lightButtons) {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  }
+}
 
 function buildGallery() {
   galleryGrid.innerHTML = "";
@@ -97,6 +128,38 @@ function initViewerOnce() {
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  // Světla pro 4 přepínatelné režimy (viz LIGHT_PRESETS) – pozice řeší jen
+  // směr (u DirectionalLight na vzdálenosti nezáleží), takže je stačí
+  // nastavit jednou. Výjimka je spotLight pro režim "shora", ten se
+  // přepočítává per-model ve frameModel() podle velikosti exponátu.
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  keyLight.position.set(4, 6, 5);
+  fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  fillLight.position.set(-5, 2, -3);
+  sideLight = new THREE.DirectionalLight(0xffffff, 0);
+  sideLight.position.set(6, 0.6, 0.2);
+  backLight = new THREE.DirectionalLight(0xffffff, 0);
+  backLight.position.set(-6, 0.6, -0.2);
+  spotLight = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 6, 0.4, 0);
+  scene.add(
+    ambientLight,
+    keyLight,
+    fillLight,
+    sideLight,
+    backLight,
+    spotLight,
+    spotLight.target
+  );
+  applyLightPreset("studio");
+
+  for (const btn of lightButtons) {
+    btn.addEventListener("click", () => {
+      applyLightPreset(btn.dataset.mode);
+      registerActivity();
+    });
+  }
 
   camera = new THREE.PerspectiveCamera(
     45,
@@ -170,6 +233,7 @@ function openExhibit(exhibit) {
   clearModel();
 
   viewerTitle.textContent = exhibit.name;
+  applyLightPreset("studio");
 
   loadingOverlay.classList.remove("hidden");
   loadingProgress.style.width = "0%";
@@ -222,6 +286,13 @@ function frameModel(model) {
   // těsně k povrchu.
   controls.minDistance = maxDim * 0.05;
   controls.maxDistance = maxDim * 8;
+
+  // Reflektor shora (režim "top") má nulový decay (viz initViewerOnce),
+  // takže na vzdálenosti nezáleží pro jas – jen musí být dost daleko, aby
+  // kužel světla pokryl celý model bez ohledu na jeho velikost.
+  spotLight.position.set(0, maxDim * 3, maxDim * 0.3);
+  spotLight.target.position.set(0, 0, 0);
+  spotLight.distance = maxDim * 20;
 
   controls.target.set(0, 0, 0);
   controls.update();
