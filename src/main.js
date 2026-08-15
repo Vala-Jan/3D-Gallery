@@ -60,7 +60,15 @@ function buildGallery() {
 
     const thumb = document.createElement("div");
     thumb.className = "thumb";
-    thumb.textContent = "🗿";
+    if (exhibit.thumbnail) {
+      const img = document.createElement("img");
+      img.src = exhibit.thumbnail;
+      img.alt = exhibit.name;
+      img.loading = "lazy";
+      thumb.appendChild(img);
+    } else {
+      thumb.classList.add("thumb-placeholder");
+    }
 
     const body = document.createElement("div");
     body.className = "card-body";
@@ -100,8 +108,9 @@ function initViewerOnce() {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.minDistance = 0.3;
-  controls.maxDistance = 20;
+  // min/maxDistance se přepočítávají per-model ve frameModel() podle
+  // skutečné velikosti načteného modelu (viz níže) – fixní hodnoty by
+  // u větších/menších modelů neseděly (nešlo by dost oddálit/přiblížit).
   controls.touches = {
     ONE: THREE.TOUCH.ROTATE,
     TWO: THREE.TOUCH.DOLLY_PAN,
@@ -206,6 +215,13 @@ function frameModel(model) {
   camera.near = maxDim / 100;
   camera.far = maxDim * 100;
   camera.updateProjectionMatrix();
+
+  // Odvozeno od velikosti TOHOTO modelu, ne od pevných čísel – model může
+  // být v souboru měřený v milimetrech i v kilometrech. Necháváme dost
+  // prostoru oddálit se a vidět ho celý (i s marží), a zase přiblížit až
+  // těsně k povrchu.
+  controls.minDistance = maxDim * 0.05;
+  controls.maxDistance = maxDim * 8;
 
   controls.target.set(0, 0, 0);
   controls.update();

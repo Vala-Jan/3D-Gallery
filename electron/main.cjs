@@ -31,6 +31,7 @@ if (!modelyDirExisted) {
 }
 
 const MODEL_EXTENSIONS = new Set([".glb", ".gltf"]);
+const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -72,23 +73,41 @@ function serveFile(res, filePath) {
 }
 
 // Prohledá složku "modely" a z názvů souborů (bez přípony) sestaví seznam
-// exponátů – žádné ruční popisky, žádný JSON k rozbití.
+// exponátů – žádné ruční popisky, žádný JSON k rozbití. Náhledový obrázek
+// se hledá automaticky – stejné jméno souboru jako model, jen s obrázkovou
+// příponou (např. "Váza.glb" + "Váza.jpg" ve stejné složce).
 function listExhibits() {
-  let entries = [];
+  let allFiles = [];
   try {
-    entries = fs
+    allFiles = fs
       .readdirSync(modelyDir, { withFileTypes: true })
-      .filter((e) => e.isFile() && MODEL_EXTENSIONS.has(path.extname(e.name).toLowerCase()))
-      .map((e) => e.name)
-      .sort((a, b) => a.localeCompare(b, "cs"));
+      .filter((e) => e.isFile())
+      .map((e) => e.name);
   } catch {
-    entries = [];
+    allFiles = [];
   }
-  return entries.map((filename) => ({
-    id: filename,
-    name: path.parse(filename).name,
-    model: "modely/" + encodeURIComponent(filename),
-  }));
+
+  const modelFiles = allFiles
+    .filter((name) => MODEL_EXTENSIONS.has(path.extname(name).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b, "cs"));
+
+  const imageByBasename = new Map();
+  for (const name of allFiles) {
+    if (!IMAGE_EXTENSIONS.has(path.extname(name).toLowerCase())) continue;
+    const base = path.parse(name).name.toLowerCase();
+    if (!imageByBasename.has(base)) imageByBasename.set(base, name);
+  }
+
+  return modelFiles.map((filename) => {
+    const base = path.parse(filename).name;
+    const thumbFile = imageByBasename.get(base.toLowerCase());
+    return {
+      id: filename,
+      name: base,
+      model: "modely/" + encodeURIComponent(filename),
+      thumbnail: thumbFile ? "modely/" + encodeURIComponent(thumbFile) : null,
+    };
+  });
 }
 
 function startServer() {
