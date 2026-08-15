@@ -67,6 +67,31 @@ function startServer() {
   const server = http.createServer((req, res) => {
     const urlPath = req.url.split("?")[0];
 
+    // Diagnostická informace pro appku (a pro ladění) – kam přesně appka
+    // sahá pro exhibits.json/modely, a jestli tam skutečně něco najde.
+    if (urlPath === "/__status") {
+      const exhibitsPath = path.join(exponatyDir, "exhibits.json");
+      let exhibitsInfo;
+      try {
+        const raw = fs.readFileSync(exhibitsPath, "utf-8");
+        try {
+          const parsed = JSON.parse(raw);
+          exhibitsInfo = { readable: true, validJson: true, count: Array.isArray(parsed) ? parsed.length : null };
+        } catch (parseErr) {
+          exhibitsInfo = { readable: true, validJson: false, parseError: parseErr.message, rawPreview: raw.slice(0, 200) };
+        }
+      } catch (readErr) {
+        exhibitsInfo = { readable: false, error: readErr.message };
+      }
+      let modelFiles = [];
+      try {
+        modelFiles = fs.readdirSync(path.join(exponatyDir, "models"));
+      } catch {}
+      const body = JSON.stringify({ exponatyDir, exhibitsPath, exhibitsInfo, modelFiles }, null, 2);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(body);
+    }
+
     // Editovatelný obsah (exponáty) se servíruje ze složky vedle .exe,
     // zbytek (appka samotná) z vnitřní dist/ složky.
     if (urlPath === "/exhibits.json") {
