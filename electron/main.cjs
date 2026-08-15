@@ -1,9 +1,7 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog } = require("electron");
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
-
-const PORT = 8080;
 
 // V zabalené appce (.exe) leží spustitelný soubor a vedle něj i tato složka
 // resources/app – tam je vestavěný obsah appky (dist/, vytvořené přes `npm run build`).
@@ -117,14 +115,30 @@ function startServer() {
 
   return new Promise((resolve, reject) => {
     server.on("error", reject);
-    server.listen(PORT, "127.0.0.1", () => resolve(server));
+    // Port 0 = necháme operační systém vybrat volný port. Appka dřív používala
+    // pevný port 8080, který se uměl srazit se starším samostatným serverem
+    // z webové verze (server.ps1) běžícím na pozadí – oba se pak "prali" o
+    // stejné místo a appka omylem načetla cizí (starý) obsah. Volný port
+    // vybraný systémem tuhle kolizi úplně vylučuje.
+    server.listen(0, "127.0.0.1", () => resolve(server));
   });
 }
 
 let mainWindow;
 
 async function createWindow() {
-  await startServer();
+  let server;
+  try {
+    server = await startServer();
+  } catch (err) {
+    dialog.showErrorBox(
+      "3D Galerie – chyba serveru",
+      "Nepodařilo se spustit vestavěný lokální server:\n\n" + err.message
+    );
+    app.quit();
+    return;
+  }
+  const port = server.address().port;
 
   mainWindow = new BrowserWindow({
     kiosk: true,
@@ -136,7 +150,7 @@ async function createWindow() {
   });
 
   mainWindow.webContents.setVisualZoomLevelLimits(1, 1);
-  mainWindow.loadURL(`http://127.0.0.1:${PORT}/`);
+  mainWindow.loadURL(`http://127.0.0.1:${port}/`);
 
   // Ctrl+Shift+Q ukončí kiosek (pro personál).
   mainWindow.webContents.on("before-input-event", (event, input) => {
