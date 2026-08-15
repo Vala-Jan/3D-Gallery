@@ -2,7 +2,10 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import exhibits from "./exhibits.json";
+
+// exhibits.json se načítá za běhu (ne při sestavení), aby šlo exponáty
+// přidávat/upravovat přímo ve složce dist/ bez nutnosti dělat nový build.
+let exhibits = [];
 
 // Po kolika ms nečinnosti v prohlížeči se galerie sama vrátí na přehled
 // (aby byla připravená pro dalšího návštěvníka). Nastavte na 0 pro vypnutí.
@@ -258,4 +261,21 @@ btnInfo.addEventListener("click", () => {
 });
 btnReset.addEventListener("click", resetView);
 
-buildGallery();
+loadExhibits();
+
+async function loadExhibits() {
+  galleryGrid.innerHTML = '<div class="empty-message">Načítání seznamu exponátů…</div>';
+  try {
+    const res = await fetch(`exhibits.json?v=${Date.now()}`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    exhibits = await res.json();
+  } catch (err) {
+    console.error("Nepodařilo se načíst exhibits.json:", err);
+    galleryGrid.innerHTML =
+      '<div class="empty-message">Nepodařilo se načíst seznam exponátů (exhibits.json). ' +
+      "Zkontrolujte, že soubor existuje ve složce dist a že galerii spouštíte přes " +
+      "spustit-galerii.bat, ne dvojklikem na index.html.</div>";
+    return;
+  }
+  buildGallery();
+}

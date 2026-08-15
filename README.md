@@ -21,7 +21,10 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
 
 ## 1. Jak přidat nový exponát
 
-Přidání nového exponátu nevyžaduje žádné programování.
+Přidání nového exponátu nevyžaduje žádné programování ani nový build –
+`exhibits.json` se v appce načítá za běhu, takže stačí upravit soubory
+**přímo ve složce `dist`** (tam, kde je `index.html`), uložit a v prohlížeči
+dát znovu načíst stránku (F5, nebo zavřít a znovu spustit `spustit-galerii.bat`).
 
 1. **Připravte 3D model ve formátu `.glb`** (binární glTF – jeden soubor,
    obsahuje geometrii, textury i materiály). Pokud máte model v jiném formátu
@@ -31,17 +34,18 @@ Přidání nového exponátu nevyžaduje žádné programování.
    - Model nemusí být "vycentrovaný" ani v žádném konkrétním měřítku –
      kamera se na něj automaticky zaměří.
 
-2. **Zkopírujte soubor** do složky `public/models/`, např.:
+2. **Zkopírujte soubor** do složky `dist/models/`, např.:
    ```
-   public/models/vaza-antika.glb
+   dist/models/vaza-antika.glb
    ```
 
 3. *(Volitelně)* Přidejte náhledový obrázek (čtvercová fotka/render) do
-   `public/models/thumbnails/`, např. `public/models/thumbnails/vaza-antika.jpg`.
+   `dist/models/thumbnails/`, např. `dist/models/thumbnails/vaza-antika.jpg`.
    Pokud náhled nepřidáte, dlaždice zobrazí výchozí ikonu.
 
-4. **Přidejte záznam** do souboru `src/exhibits.json` (je to obyčejný textový
-   seznam, dá se upravit v Poznámkovém bloku):
+4. **Otevřete `dist/exhibits.json` v Poznámkovém bloku** (je to obyčejný
+   textový seznam) a přidejte nový záznam – nezapomeňte na čárku za
+   předchozí `}` uzávorkou, aby seznam zůstal platný:
    ```json
    {
      "id": "vaza-antika",
@@ -59,15 +63,21 @@ Přidání nového exponátu nevyžaduje žádné programování.
    - `thumbnail` – nepovinné, jinak smažte celý řádek nebo nechte `""`.
    - `cameraDistance` – nepovinné, jak daleko od modelu má start kamera
      (pokud chybí, spočítá se automaticky z velikosti modelu).
-   - Nezapomeňte na čárku mezi jednotlivými exponáty ve `[ ]` seznamu.
+   - Uložte soubor **stejným názvem** `exhibits.json` (Poznámkový blok při
+     "Uložit jako" nabízí přidat `.txt` navíc – zkontrolujte, že k tomu nedošlo).
 
-5. Uložte a znovu **vytvořte build** (viz krok 2 níže) – nebo pokud jen
-   testujete na vývojovém počítači, spusťte `npm run dev` a změny se projeví
-   ihned.
+5. Obnovte stránku v prohlížeči (F5) – nový exponát by se měl hned objevit
+   v přehledu. Rebuild (krok 2 níže) je potřeba jen když měníte samotný kód
+   appky (`src/`), ne při běžném přidávání/úpravě exponátů.
 
-Dva ukázkové exponáty (kachnička, helma) slouží jen jako demo – v `src/exhibits.json`
-je klidně smažte a nahraďte vlastními, soubory z `public/models/*-demo.glb`
+Dva ukázkové exponáty (kachnička, helma) slouží jen jako demo – v `exhibits.json`
+je klidně smažte a nahraďte vlastními, soubory `models/*-demo.glb`
 pak můžete odstranit.
+
+> **Pozor na formát JSON:** chybějící nebo přebytečná čárka celý seznam
+> "rozbije" a galerie se nenačte vůbec (zobrazí se chybová hláška). Pokud
+> se po úpravě přehled nezobrazí, zkontrolujte čárky mezi `{ … }` bloky a
+> že hranaté závorky `[` a `]` na začátku/konci souboru zůstaly netknuté.
 
 ---
 
@@ -156,9 +166,9 @@ notebooku před nasazením na kiosek.
 
 ```
 public/models/             – .glb soubory exponátů + thumbnails/
+public/exhibits.json       – seznam exponátů (kopíruje se do dist/, načítá se za běhu)
 public/spustit-galerii.bat – spouštěč pro kiosek PC (kopíruje se do dist/)
 public/server.ps1          – lokální server bez závislostí (kopíruje se do dist/)
-src/exhibits.json          – seznam exponátů (název, popis, cesta k modelu…)
 src/main.js                – logika galerie a 3D prohlížeče (Three.js)
 src/style.css              – vzhled, přizpůsobeno velké dotykové obrazovce
 index.html                 – vstupní stránka
