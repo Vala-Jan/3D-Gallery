@@ -1,6 +1,6 @@
 node_modules/
 dist/
 release/
-exponaty-dev/
+modely-dev/
 .DS_Store
 *.log
