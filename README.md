@@ -157,33 +157,97 @@ otevře na celou obrazovku, bez viditelného okna prohlížeče nebo serveru,
 bez PowerShellu a bez SmartScreen varování kvůli `.bat`/`.ps1` skriptům.
 
 Toto je čistě volitelné – webová verze z kroků 1–3 funguje sama o sobě.
-Sestavení potřebuje (stejně jako krok 2) počítač s Node.js a internetem
-(nemusí to být kiosek PC):
+Sestavení potřebuje počítač s internetem (nemusí to být kiosek PC – klidně
+domácí notebook, na chvíli půjčený PC apod.). Postup je jednorázový a
+nevyžaduje žádné programátorské zkušenosti.
+
+### Krok za krokem (Windows)
+
+**1. Stáhněte zdrojové kódy appky**
+
+- Otevřete v prohlížeči: `https://github.com/Goat04/Festival-V-dy`
+- Nahoře přepněte větev z `main` na `claude/interactive-3d-model-repository-a8cyes`
+  (rozbalovací nabídka s názvem větve, cca uprostřed stránky).
+- Klikněte na zelené tlačítko **Code** → **Download ZIP**.
+- Stažený ZIP rozbalte (pravé tlačítko → Extrahovat vše) na libovolné
+  místo, např. na plochu.
+
+**2. Nainstalujte Node.js** (pokud ho na tomto PC ještě nemáte)
+
+- Otevřete `https://nodejs.org`.
+- Stáhněte verzi označenou **LTS** a spusťte instalátor.
+- Klikejte **Next** → **Next** → … → **Install** → **Finish**. Není potřeba
+  nic zaškrtávat ani měnit, výchozí nastavení stačí.
+
+**3. Otevřete příkazový řádek přímo v rozbalené složce**
+
+- V Průzkumníkovi souborů otevřete rozbalenou složku (`Festival-V-dy-...`),
+  tam kde uvnitř vidíte složky `src`, `public`, `electron` apod.
+- Klikněte myší do adresního řádku nahoře (kde je cesta ke složce), smažte
+  co je tam napsané, napište `cmd` a stiskněte **Enter**.
+- Otevře se černé okno (Příkazový řádek) rovnou v této složce.
+
+**4. Zadejte tyto dva příkazy** (do černého okna, každý potvrďte klávesou Enter):
 
 ```bash
 npm install
+```
+Počkejte, až doběhne (může to trvat pár minut, stahují se potřebné součásti
+– je potřeba internet). Pak:
+
+```bash
 npm run package:win
 ```
+Tohle může trvat déle (klidně 5–10 minut) a stáhne se při tom větší balík
+dat (samotný Electron/Chromium engine, cca 100+ MB) – je potřeba mít
+internet po celou dobu. Na konci by mělo být napsáno něco jako
+`Wrote new app to: release\3D Galerie-win32-x64`.
 
-Vytvoří se složka `release/3D Galerie-win32-x64/` (cca 300–350 MB – Electron
-v sobě nese celý prohlížečový engine, proto ta velikost). Tuto celou složku
-zkopírujte na USB disk a přeneste na kiosek PC – nic dalšího se instalovat
-nemusí.
+**5. Najděte výsledek**
 
-Ve složce vedle `3D Galerie.exe` vytvořte (pokud tam appka sama nevytvoří
-prázdnou) podsložku `exponaty/` se stejnou strukturou jako `dist/models/` +
-`exhibits.json` u webové verze:
+V rozbalené složce projektu přibyla nová podsložka `release`, a v ní
+`3D Galerie-win32-x64` – to je celá hotová aplikace (cca 300–350 MB,
+Electron v sobě nese celý prohlížečový engine, proto ta velikost).
+
+**6. Přidejte složku s exponáty**
+
+Uvnitř `release\3D Galerie-win32-x64\` vytvořte novou složku `exponaty`,
+a v ní složku `models`. Zkopírujte do nich (z původní stažené složky
+projektu):
+- `public\exhibits.json` → `release\3D Galerie-win32-x64\exponaty\exhibits.json`
+- vše z `public\models\` → `release\3D Galerie-win32-x64\exponaty\models\`
+
+Výsledná struktura:
 ```
-exponaty/
-  exhibits.json
-  models/
-    *.glb
+3D Galerie-win32-x64\
+  3D Galerie.exe
+  exponaty\
+    exhibits.json
+    models\
+      kachna-demo.glb
+      helma-demo.glb
+      ...
 ```
-Pro rychlý start zkopírujte jako výchozí obsah `public/exhibits.json` a
-`public/models/*.glb` z tohoto repozitáře.
 
-Spuštění: dvojklik na `3D Galerie.exe` – appka se otevře v kiosk módu.
-Ukončení (pro personál): `Ctrl+Shift+Q`.
+**7. Přeneste na kiosek PC**
+
+Celou složku `3D Galerie-win32-x64` zkopírujte na USB disk (potřebuje
+alespoň cca 500 MB volného místa) a na kiosek PC ji zkopírujte např. do
+`C:\galerie\`. Nic se tam instalovat nemusí.
+
+**8. Spusťte**
+
+Dvojklik na `3D Galerie.exe` uvnitř – appka se otevře rovnou na celou
+obrazovku (kiosk mód), bez viditelného okna prohlížeče či serveru.
+Pokud se objeví modré okno "Windows chránil váš počítač" (SmartScreen),
+klikněte na **Další informace** → **Přesto spustit** (appka nemá
+placený digitální podpis, to je vše).
+
+Ukončení (pro personál, ne pro návštěvníky): `Ctrl+Shift+Q`.
+
+**9.** *(Volitelně)* Automatické spuštění po zapnutí PC: `Win + R` →
+napište `shell:startup` → Enter → do otevřené složky vložte zástupce
+(pravé tlačítko → Nový → Zástupce) směřující na `3D Galerie.exe`.
 
 Přidávání exponátů funguje stejně jako u webové verze (úprava
 `exponaty/exhibits.json` v Poznámkovém bloku + kopírování `.glb` do
