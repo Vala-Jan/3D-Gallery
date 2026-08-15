@@ -36,6 +36,20 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
    exponát se objeví automaticky. Žádný JSON, žádný seznam.
 4. Odebrání exponátu: smažte příslušný `.glb` soubor ze složky `modely`.
 
+### Náhledový obrázek na dlaždici
+
+Bez obrázku appka na dlaždici ukáže jednoduchou ikonku krychle. Pokud chcete
+vlastní náhled (foto/render exponátu), stačí do stejné složky `modely`
+přidat obrázek se **stejným názvem** jako model, jen s obrázkovou příponou:
+
+```
+modely/
+  Antická váza.glb
+  Antická váza.jpg      <- náhled pro tento model
+```
+
+Podporované přípony náhledu: `.jpg`, `.jpeg`, `.png`, `.webp`.
+
 Pokud nemáte model ve formátu `.glb`, ale máte ho v jiném formátu (OBJ, FBX,
 STL, Blender…), převeďte ho zdarma a offline v
 [Blenderu](https://www.blender.org/): `File → Export → glTF 2.0 (.glb)`,
