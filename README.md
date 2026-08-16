@@ -1,5 +1,7 @@
 # 3D Galerie exponátů
 
+> **Vibe Coding Project** — This project was developed using AI-assisted coding.
+
 Desktopová appka pro dotykovou obrazovku (TV/monitor) v muzeu, bez připojení
 k internetu. Návštěvníci si z přehledu vyberou exponát a prstem si s jeho
 3D modelem mohou volně otáčet, přibližovat a oddalovat.
