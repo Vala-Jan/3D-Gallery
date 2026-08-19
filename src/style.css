@@ -282,15 +282,22 @@ body {
 }
 
 .btn-reset {
-  bottom: clamp(16px, 2vh, 32px);
-  right: clamp(16px, 2vw, 32px);
+  /* Teď je součástí .bottom-left-controls (flex řádek vedle světelných
+     režimů), místo aby byl vlastní absolutně pozicovaný prvek. */
+  position: static;
 }
 
-.light-modes {
+.bottom-left-controls {
   position: absolute;
   z-index: 10;
   bottom: clamp(16px, 2vh, 32px);
   left: clamp(16px, 2vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.light-modes {
   display: flex;
   gap: 10px;
   background: rgba(26, 28, 35, 0.85);
