@@ -281,6 +281,17 @@ body {
   left: clamp(16px, 2vw, 32px);
 }
 
+.btn-info {
+  top: clamp(16px, 2vh, 32px);
+  right: clamp(16px, 2vw, 32px);
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.btn-info.hidden {
+  display: none;
+}
+
 .btn-reset {
   /* Teď je součástí .bottom-left-controls (flex řádek vedle světelných
      režimů), místo aby byl vlastní absolutně pozicovaný prvek. */
@@ -351,6 +362,28 @@ body {
   border-radius: 999px;
   backdrop-filter: blur(8px);
   pointer-events: none;
+}
+
+.description-panel {
+  position: absolute;
+  z-index: 9;
+  top: clamp(64px, 9vh, 96px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(70vw, 560px);
+  text-align: center;
+  font-size: clamp(14px, 1.4vw, 18px);
+  line-height: 1.5;
+  color: #d6d9e0;
+  background: rgba(20, 22, 28, 0.75);
+  padding: 14px 22px;
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.description-panel.hidden {
+  display: none;
 }
 
 .hint {

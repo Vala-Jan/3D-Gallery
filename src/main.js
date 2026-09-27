@@ -26,6 +26,8 @@ const hint = document.getElementById("hint");
 
 const btnBack = document.getElementById("btn-back");
 const btnReset = document.getElementById("btn-reset");
+const btnInfo = document.getElementById("btn-info");
+const descriptionPanel = document.getElementById("description-panel");
 const lightButtons = Array.from(document.querySelectorAll(".light-btn"));
 
 let renderer, scene, camera, controls, currentModel;
@@ -235,6 +237,10 @@ function openExhibit(exhibit) {
   viewerTitle.textContent = exhibit.name;
   applyLightPreset("studio");
 
+  descriptionPanel.classList.add("hidden");
+  descriptionPanel.textContent = exhibit.description || "";
+  btnInfo.classList.toggle("hidden", !exhibit.description);
+
   loadingOverlay.classList.remove("hidden");
   loadingProgress.style.width = "0%";
   loadingText.textContent = "Načítání modelu…";
@@ -323,6 +329,10 @@ function registerActivity() {
 
 btnBack.addEventListener("click", closeViewer);
 btnReset.addEventListener("click", resetView);
+btnInfo.addEventListener("click", () => {
+  descriptionPanel.classList.toggle("hidden");
+  registerActivity();
+});
 
 loadExhibits();
 
