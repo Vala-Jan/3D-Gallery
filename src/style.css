@@ -78,6 +78,14 @@
   padding: 0;
 }
 
+:root {
+  /* Odsazení od okraje obrazovky pro tlačítka/panely v prohlížeči (btn-back,
+     btn-info, bottom-left-controls, viewer-title...) – jedna hodnota místo
+     opakovaného "clamp(16px, 2vh/2vw, 32px)" na několika místech. */
+  --edge-gap-v: clamp(16px, 2vh, 32px);
+  --edge-gap-h: clamp(16px, 2vw, 32px);
+}
+
 html,
 body {
   width: 100%;
@@ -272,13 +280,13 @@ body {
 }
 
 .btn-back {
-  top: clamp(16px, 2vh, 32px);
-  left: clamp(16px, 2vw, 32px);
+  top: var(--edge-gap-v);
+  left: var(--edge-gap-h);
 }
 
 .btn-info {
-  top: clamp(16px, 2vh, 32px);
-  right: clamp(16px, 2vw, 32px);
+  top: var(--edge-gap-v);
+  right: var(--edge-gap-h);
   font-style: italic;
   font-family: Georgia, "Times New Roman", serif;
 }
@@ -296,8 +304,8 @@ body {
 .bottom-left-controls {
   position: absolute;
   z-index: 10;
-  bottom: clamp(16px, 2vh, 32px);
-  left: clamp(16px, 2vw, 32px);
+  bottom: var(--edge-gap-v);
+  left: var(--edge-gap-h);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -342,7 +350,7 @@ body {
 .viewer-title {
   position: absolute;
   z-index: 9;
-  top: clamp(16px, 2vh, 32px);
+  top: var(--edge-gap-v);
   left: 50%;
   transform: translateX(-50%);
   max-width: min(80vw, 640px);
@@ -363,7 +371,7 @@ body {
   position: absolute;
   z-index: 9;
   top: 50%;
-  right: clamp(16px, 2vw, 32px);
+  right: var(--edge-gap-h);
   transform: translateY(-50%);
   width: clamp(240px, 24vw, 340px);
   max-height: min(60vh, 340px);

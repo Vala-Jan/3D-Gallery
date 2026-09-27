@@ -6,7 +6,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 // Seznam exponátů appka nikde needuje – při každém načtení galerie se
 // zeptá lokálního serveru (electron/main.cjs), jaké .glb soubory právě
 // leží ve složce "modely" vedle .exe. Přidání exponátu je tak jen
-// zkopírování souboru; volitelný náhled a popis se přidávají stejným
+// zkopírování souboru; volitelný náhled a info panel se přidávají stejným
 // způsobem (soubor se stejným názvem, jinou příponou – viz main.cjs).
 let exhibits = [];
 let modelyFolder = null;
