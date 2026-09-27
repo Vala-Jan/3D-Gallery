@@ -21,8 +21,8 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
   přibližují/oddalují a posouvají (funguje i myší).
 - Tlačítka v prohlížeči:
   - **←** vlevo nahoře – zpět na přehled.
-  - **i** vpravo nahoře – zobrazí/schová popis exponátu (jen když ho má,
-    viz níže).
+  - **i** vpravo nahoře – zobrazí/schová informační panel s popisky
+    exponátu (jen když je má, viz níže).
   - Vlevo dole – 4 přepínatelné **režimy osvětlení** (standardní, boční,
     reflektor shora, rovnoměrné) a vedle nich **⟳** reset pohledu kamery.
 - Po 2 minutách nečinnosti se appka sama vrátí na přehled, aby byla
@@ -57,30 +57,36 @@ modely/
 
 Podporované přípony náhledu: `.jpg`, `.jpeg`, `.png`, `.webp`.
 
-### Popis exponátu (volitelné)
+### Informační panel exponátu (volitelné)
 
-Stejným způsobem jde přidat i krátký popis, který se zobrazí po klepnutí na
-tlačítko **i** v prohlížeči. Vytvořte soubor se stejným názvem jako model,
-příponu `.json`, a jednoduchý obsah:
+Stejným způsobem jde přidat i informační panel (čtvercová karta vpravo),
+který se zobrazí po klepnutí na tlačítko **i** v prohlížeči. Vytvořte
+soubor se stejným názvem jako model, příponu `.json`:
 
 ```
 modely/
   Antická váza.glb
-  Antická váza.json     <- popis pro tento model
+  Antická váza.json     <- informace pro tento model
 ```
 
-Obsah souboru `Antická váza.json`:
+Obsah souboru `Antická váza.json` je libovolný seznam **"popisek: hodnota"**
+– appka nemá žádnou pevnou sadu polí, vypíše přesně to a v tom pořadí, co
+do JSONu napíšete:
 
 ```json
 {
-  "description": "Řecká amfora, 5. století př. n. l. Nalezena při vykopávkách v roce 1962."
+  "Název": "Antická váza",
+  "Popis": "Řecká amfora, 5. století př. n. l. Nalezena při vykopávkách v roce 1962.",
+  "Datace": "5. století př. n. l.",
+  "Materiál": "Pálená hlína"
 }
 ```
 
-Exponáty bez `.json` souboru tlačítko **i** vůbec nezobrazí. Popisy jsou
-záměrně **každý ve svém vlastním souboru** (ne jeden sdílený seznam) – když
-se v jednom souboru překlepnete, přijde o popis jen ten jeden exponát,
-zbytek galerie funguje dál normálně.
+Klidně přidejte další vlastní pole (Autor, Původ, Rozměry…) – panel je
+vypíše automaticky. Exponáty bez `.json` souboru tlačítko **i** vůbec
+nezobrazí. Informace jsou záměrně **každá ve svém vlastním souboru** (ne
+jeden sdílený seznam) – když se v jednom souboru překlepnete, přijde o
+informace jen ten jeden exponát, zbytek galerie funguje dál normálně.
 
 Pokud nemáte model ve formátu `.glb`, ale máte ho v jiném formátu (OBJ, FBX,
 STL, Blender…), převeďte ho zdarma a offline v
