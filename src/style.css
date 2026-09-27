@@ -225,11 +225,6 @@ body {
   margin-bottom: 6px;
 }
 
-.exhibit-card .card-body p {
-  font-size: clamp(12px, 1.2vw, 16px);
-  color: #b6bac4;
-}
-
 .empty-message {
   grid-column: 1 / -1;
   text-align: center;
