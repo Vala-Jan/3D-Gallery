@@ -73,21 +73,30 @@ function serveFile(res, filePath) {
 }
 
 // Prohledá složku "modely" a z názvů souborů (bez přípony) sestaví seznam
-// exponátů – žádný centrální seznam k rozbití. Náhledový obrázek i popis se
+// exponátů – žádný centrální seznam k rozbití. Náhledový obrázek i info se
 // hledají automaticky – stejné jméno souboru jako model, jen s jinou
 // příponou (např. "Váza.glb" + "Váza.jpg" + "Váza.json" ve stejné složce).
-// Popis je v samostatném souboru PER EXPONÁT záměrně: chyba v jednom JSONu
-// (překlep, chybějící čárka) tak shodí popis jen u toho jednoho exponátu,
+// Info je v samostatném souboru PER EXPONÁT záměrně: chyba v jednom JSONu
+// (překlep, chybějící čárka) tak shodí info jen u toho jednoho exponátu,
 // ne celou galerii.
-function readDescription(jsonPath) {
+//
+// Obsah JSONu je libovolný seznam popisků "klíč: hodnota", např.:
+//   { "Název": "Antická váza", "Datace": "5. století př. n. l." }
+// Appka je zobrazí přesně v tomhle pořadí, žádná pevná sada polí.
+function readInfo(jsonPath) {
   try {
     const raw = fs.readFileSync(jsonPath, "utf-8");
     const data = JSON.parse(raw);
-    if (data && typeof data.description === "string" && data.description.trim()) {
-      return data.description.trim();
-    }
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+
+    const entries = Object.entries(data).filter(
+      ([, value]) => typeof value === "string" && value.trim()
+    );
+    if (!entries.length) return null;
+
+    return Object.fromEntries(entries.map(([key, value]) => [key, value.trim()]));
   } catch {
-    // Chybějící nebo neplatný JSON – exponát prostě zůstane bez popisu.
+    // Chybějící nebo neplatný JSON – exponát prostě zůstane bez info panelu.
   }
   return null;
 }
@@ -128,7 +137,7 @@ function listExhibits() {
       name: base,
       model: "modely/" + encodeURIComponent(filename),
       thumbnail: thumbFile ? "modely/" + encodeURIComponent(thumbFile) : null,
-      description: jsonFile ? readDescription(path.join(modelyDir, jsonFile)) : null,
+      info: jsonFile ? readInfo(path.join(modelyDir, jsonFile)) : null,
     };
   });
 }

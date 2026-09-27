@@ -28,7 +28,7 @@ const hint = document.getElementById("hint");
 const btnBack = document.getElementById("btn-back");
 const btnReset = document.getElementById("btn-reset");
 const btnInfo = document.getElementById("btn-info");
-const descriptionPanel = document.getElementById("description-panel");
+const infoPanel = document.getElementById("info-panel");
 const lightButtons = Array.from(document.querySelectorAll(".light-btn"));
 
 let renderer, scene, camera, controls, currentModel;
@@ -228,6 +228,24 @@ function clearModel() {
 
 const loader = new GLTFLoader();
 
+// Vykreslí libovolná pole z exhibit.info (JSON vedle modelu, viz main.cjs)
+// jako seznam "klíč: hodnota" – appka nepředepisuje žádnou pevnou sadu
+// položek (Název, Popis, Datace…), jen vypíše to, co v JSONu skutečně je.
+function buildInfoPanel(info) {
+  infoPanel.innerHTML = "";
+  if (!info) return;
+  const dl = document.createElement("dl");
+  for (const [key, value] of Object.entries(info)) {
+    const dt = document.createElement("dt");
+    dt.textContent = key;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    dl.appendChild(dt);
+    dl.appendChild(dd);
+  }
+  infoPanel.appendChild(dl);
+}
+
 function openExhibit(exhibit) {
   galleryScreen.classList.add("hidden");
   viewerScreen.classList.remove("hidden");
@@ -238,9 +256,9 @@ function openExhibit(exhibit) {
   viewerTitle.textContent = exhibit.name;
   applyLightPreset("studio");
 
-  descriptionPanel.classList.add("hidden");
-  descriptionPanel.textContent = exhibit.description || "";
-  btnInfo.classList.toggle("hidden", !exhibit.description);
+  infoPanel.classList.add("hidden");
+  buildInfoPanel(exhibit.info);
+  btnInfo.classList.toggle("hidden", !exhibit.info);
 
   loadingOverlay.classList.remove("hidden");
   loadingProgress.style.width = "0%";
@@ -331,7 +349,7 @@ function registerActivity() {
 btnBack.addEventListener("click", closeViewer);
 btnReset.addEventListener("click", resetView);
 btnInfo.addEventListener("click", () => {
-  descriptionPanel.classList.toggle("hidden");
+  infoPanel.classList.toggle("hidden");
   registerActivity();
 });
 
