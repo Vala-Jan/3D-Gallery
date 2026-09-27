@@ -73,9 +73,25 @@ function serveFile(res, filePath) {
 }
 
 // Prohledá složku "modely" a z názvů souborů (bez přípony) sestaví seznam
-// exponátů – žádné ruční popisky, žádný JSON k rozbití. Náhledový obrázek
-// se hledá automaticky – stejné jméno souboru jako model, jen s obrázkovou
-// příponou (např. "Váza.glb" + "Váza.jpg" ve stejné složce).
+// exponátů – žádný centrální seznam k rozbití. Náhledový obrázek i popis se
+// hledají automaticky – stejné jméno souboru jako model, jen s jinou
+// příponou (např. "Váza.glb" + "Váza.jpg" + "Váza.json" ve stejné složce).
+// Popis je v samostatném souboru PER EXPONÁT záměrně: chyba v jednom JSONu
+// (překlep, chybějící čárka) tak shodí popis jen u toho jednoho exponátu,
+// ne celou galerii.
+function readDescription(jsonPath) {
+  try {
+    const raw = fs.readFileSync(jsonPath, "utf-8");
+    const data = JSON.parse(raw);
+    if (data && typeof data.description === "string" && data.description.trim()) {
+      return data.description.trim();
+    }
+  } catch {
+    // Chybějící nebo neplatný JSON – exponát prostě zůstane bez popisu.
+  }
+  return null;
+}
+
 function listExhibits() {
   let allFiles = [];
   try {
@@ -92,20 +108,27 @@ function listExhibits() {
     .sort((a, b) => a.localeCompare(b, "cs"));
 
   const imageByBasename = new Map();
+  const jsonByBasename = new Map();
   for (const name of allFiles) {
-    if (!IMAGE_EXTENSIONS.has(path.extname(name).toLowerCase())) continue;
+    const ext = path.extname(name).toLowerCase();
     const base = path.parse(name).name.toLowerCase();
-    if (!imageByBasename.has(base)) imageByBasename.set(base, name);
+    if (IMAGE_EXTENSIONS.has(ext)) {
+      if (!imageByBasename.has(base)) imageByBasename.set(base, name);
+    } else if (ext === ".json") {
+      if (!jsonByBasename.has(base)) jsonByBasename.set(base, name);
+    }
   }
 
   return modelFiles.map((filename) => {
     const base = path.parse(filename).name;
     const thumbFile = imageByBasename.get(base.toLowerCase());
+    const jsonFile = jsonByBasename.get(base.toLowerCase());
     return {
       id: filename,
       name: base,
       model: "modely/" + encodeURIComponent(filename),
       thumbnail: thumbFile ? "modely/" + encodeURIComponent(thumbFile) : null,
+      description: jsonFile ? readDescription(path.join(modelyDir, jsonFile)) : null,
     };
   });
 }
