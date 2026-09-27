@@ -16,10 +16,15 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
 
 - Úvodní obrazovka je mřížka dlaždic – jedna pro každý `.glb` soubor ve
   složce `modely` vedle appky. **Název dlaždice = název souboru** (bez
-  přípony) – appka žádné popisky, autory ani jiné metadata nepotřebuje.
+  přípony) – appka žádný centrální seznam ani metadata nepotřebuje.
 - Klepnutím na dlaždici se otevře 3D model. Prst otáčí, dva prsty
-  přibližují/oddalují (funguje i myší).
-- Tlačítka v prohlížeči: **←** zpět na přehled, **⟳** reset pohledu.
+  přibližují/oddalují a posouvají (funguje i myší).
+- Tlačítka v prohlížeči:
+  - **←** vlevo nahoře – zpět na přehled.
+  - **i** vpravo nahoře – zobrazí/schová popis exponátu (jen když ho má,
+    viz níže).
+  - Vlevo dole – 4 přepínatelné **režimy osvětlení** (standardní, boční,
+    reflektor shora, rovnoměrné) a vedle nich **⟳** reset pohledu kamery.
 - Po 2 minutách nečinnosti se appka sama vrátí na přehled, aby byla
   připravená pro dalšího návštěvníka (jde změnit, viz "Přizpůsobení").
 
@@ -27,7 +32,7 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
 
 ## 1. Jak přidat nebo odebrat exponát
 
-Žádné programování, žádný soubor k úpravě – jen kopírování:
+Žádné programování, žádný centrální soubor k úpravě – jen kopírování:
 
 1. Najděte složku `modely` – leží přímo vedle `3D Galerie.exe` (ne uvnitř
    žádné jiné podsložky).
@@ -35,7 +40,7 @@ Postaveno na [Three.js](https://threejs.org/) a formátu **glTF/GLB**.
    zobrazit v galerii, např. `Antická váza.glb` → v appce se objeví dlaždice
    "Antická váza".
 3. Appku zavřete a znovu spusťte (nebo počkejte na návrat na přehled) – nový
-   exponát se objeví automaticky. Žádný JSON, žádný seznam.
+   exponát se objeví automaticky.
 4. Odebrání exponátu: smažte příslušný `.glb` soubor ze složky `modely`.
 
 ### Náhledový obrázek na dlaždici
@@ -51,6 +56,31 @@ modely/
 ```
 
 Podporované přípony náhledu: `.jpg`, `.jpeg`, `.png`, `.webp`.
+
+### Popis exponátu (volitelné)
+
+Stejným způsobem jde přidat i krátký popis, který se zobrazí po klepnutí na
+tlačítko **i** v prohlížeči. Vytvořte soubor se stejným názvem jako model,
+příponu `.json`, a jednoduchý obsah:
+
+```
+modely/
+  Antická váza.glb
+  Antická váza.json     <- popis pro tento model
+```
+
+Obsah souboru `Antická váza.json`:
+
+```json
+{
+  "description": "Řecká amfora, 5. století př. n. l. Nalezena při vykopávkách v roce 1962."
+}
+```
+
+Exponáty bez `.json` souboru tlačítko **i** vůbec nezobrazí. Popisy jsou
+záměrně **každý ve svém vlastním souboru** (ne jeden sdílený seznam) – když
+se v jednom souboru překlepnete, přijde o popis jen ten jeden exponát,
+zbytek galerie funguje dál normálně.
 
 Pokud nemáte model ve formátu `.glb`, ale máte ho v jiném formátu (OBJ, FBX,
 STL, Blender…), převeďte ho zdarma a offline v
@@ -76,7 +106,7 @@ Potřebujete počítač s internetem (nemusí to být kiosek PC).
 
 **1. Stáhněte zdrojové kódy appky**
 
-- Otevřete `https://github.com/Goat04/Festival-V-dy`.
+- Otevřete `https://github.com/Vala-Jan/3D-Gallery`.
 - Přepněte větev z `main` na `claude/interactive-3d-model-repository-a8cyes`.
 - **Code** → **Download ZIP**, a stažený ZIP rozbalte.
 
@@ -151,9 +181,11 @@ do `.exe`, vhodné pro rychlé ověřování změn v kódu.
 ```
 electron/main.cjs        – Electron proces: vestavěný server + okno appky
 electron/demo-models/    – ukázkové .glb modely nasazené při prvním spuštění
+public/fonts/            – lokálně nabalené fonty (Barlow Condensed, Inter) – appka
+                           funguje bez internetu, žádné Google Fonts CDN
 src/main.js              – logika galerie a 3D prohlížeče (Three.js)
-src/style.css            – vzhled, přizpůsobeno velké dotykové obrazovce
-index.html                – vstupní stránka
+src/style.css            – vzhled appky
+index.html               – vstupní stránka
 ```
 
 Za běhu appka navíc pracuje se složkou `modely` vedle `.exe` (u zabalené
@@ -164,5 +196,7 @@ NEJSOU součástí zdrojového kódu, appka si je sama vytváří.
 
 - **Doba nečinnosti do návratu na přehled** – konstanta `IDLE_RESET_MS`
   na začátku `src/main.js` (v milisekundách, `120000` = 2 minuty; `0` vypne).
+- **Osvětlení** (intenzity jednotlivých režimů) – `LIGHT_PRESETS` v
+  `src/main.js`.
 - **Barvy/vzhled** – `src/style.css`.
 - **Text nápovědy dole na obrazovce** – `index.html`, element `#hint`.

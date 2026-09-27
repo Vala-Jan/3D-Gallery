@@ -6,8 +6,8 @@ const path = require("node:path");
 // V zabalené appce (.exe) leží spustitelný soubor a vedle něj i tato složka
 // resources/app – tam je vestavěný obsah appky (dist/, vytvořené přes `npm run build`).
 // Exponáty (.glb soubory) se berou ze složky "modely" vedle .exe – appka ji
-// při každém zobrazení galerie znovu prohledá, žádný seznam/JSON se nikde
-// neudržuje. Přidání exponátu = zkopírovat .glb soubor do téhle složky.
+// při každém zobrazení galerie znovu prohledá. Přidání exponátu = zkopírovat
+// .glb soubor do téhle složky; volitelný náhled/popis viz listExhibits().
 const isPackaged = app.isPackaged;
 const appRoot = isPackaged ? path.join(process.resourcesPath, "app") : path.join(__dirname, "..");
 const distDir = path.join(appRoot, "dist");
