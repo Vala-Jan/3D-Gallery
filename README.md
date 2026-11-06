@@ -19,7 +19,7 @@ všech stran. Běží celá **offline** — kiosek PC nepotřebuje internet.
 
 ---
 
-## ➕ Jak přidat exponát
+## Jak přidat exponát
 
 Žádné programování. Vše se odehrává v jedné složce `modely` vedle appky.
 
@@ -60,7 +60,7 @@ souboru — překlep v jednom nikdy nerozbije zbytek galerie.
 
 ---
 
-## 🛠️ Sestavení a nasazení na kiosek
+## Sestavení a nasazení na kiosek
 
 Appku je potřeba jednou **sestavit** na počítači s internetem (nemusí to
 být kiosek PC) — znovu jen když se mění kód appky, ne při běžném přidávání
@@ -101,7 +101,7 @@ exponátů.
 ---
 
 <details>
-<summary><strong>🔧 Pro vývojáře</strong></summary>
+<summary><strong> Pro vývojáře</strong></summary>
 
 ### Vývoj / testování
 
